@@ -1,0 +1,103 @@
+version: "1.0"
+
+portal_sources:
+
+  # =========================================================
+  # 정부24 / 보조금24
+  # =========================================================
+
+  - id: gov24
+    name: "정부24"
+    publisher: "행정안전부"
+    category: government_policy
+    type: portal
+    url: "https://www.gov.kr/portal/main"
+    enabled: true
+    crawler: page
+    priority: 1
+    purpose:
+      - government_services
+      - benefits
+      - policy
+      - subsidy
+
+  - id: gov24_bojogum24
+    name: "정부24 보조금24"
+    publisher: "행정안전부"
+    category: welfare_policy
+    type: portal
+    url: "https://www.gov.kr/portal/main"
+    enabled: true
+    crawler: page
+    priority: 1
+    purpose:
+      - subsidy
+      - personalized_benefits
+      - government_support
+    note: >
+      보조금24는 정부24 내 서비스로 운영되므로
+      정부24를 기준으로 접근한다.
+
+
+  # =========================================================
+  # 고용24
+  # =========================================================
+
+  - id: work24
+    name: "고용24"
+    publisher: "고용노동부 / 한국고용정보원"
+    category: employment_policy
+    type: portal
+    url: "https://www.work24.go.kr/cm/main.do"
+    enabled: true
+    crawler: page
+    priority: 1
+    purpose:
+      - employment
+      - unemployment
+      - youth_policy
+      - training
+      - employment_support
+      - job_support
+
+
+  # =========================================================
+  # 복지로
+  # =========================================================
+
+  - id: bokjiro
+    name: "복지로"
+    publisher: "보건복지부"
+    category: welfare_policy
+    type: portal
+    url: "https://www.bokjiro.go.kr/"
+    enabled: true
+    crawler: page
+    priority: 1
+    purpose:
+      - welfare
+      - benefits
+      - welfare_services
+      - eligibility
+
+
+  # =========================================================
+  # 국토교통부
+  # =========================================================
+
+  - id: molit
+    name: "국토교통부"
+    publisher: "국토교통부"
+    category: realestate
+    type: portal
+    url: "https://www.molit.go.kr/"
+    enabled: true
+    crawler: page
+    priority: 1
+    purpose:
+      - realestate
+      - housing
+      - subscription
+      - rental
+      - transportation
+      - housing_policy

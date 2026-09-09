@@ -1,0 +1,614 @@
+version: "1.0"
+
+settings:
+  request_timeout: 20
+  user_agent: "BlogResearchBot/1.0"
+  duplicate_key:
+    - source
+    - guid
+    - url
+
+rss_feeds:
+
+  # =========================================================
+  # 매일경제
+  # =========================================================
+
+  - id: mk_headlines
+    name: "매일경제 뉴스 헤드라인"
+    publisher: "매일경제"
+    category: news
+    subcategory: headline
+    type: rss
+    url: "https://www.mk.co.kr/rss/30000001/"
+    enabled: true
+    priority: 1
+
+  - id: mk_all
+    name: "매일경제 전체뉴스"
+    publisher: "매일경제"
+    category: news
+    subcategory: all
+    type: rss
+    url: "https://www.mk.co.kr/rss/40300001/"
+    enabled: true
+    priority: 1
+
+  - id: mk_economy
+    name: "매일경제 경제"
+    publisher: "매일경제"
+    category: economy
+    type: rss
+    url: "https://www.mk.co.kr/rss/30100041/"
+    enabled: true
+    priority: 1
+
+  - id: mk_politics
+    name: "매일경제 정치"
+    publisher: "매일경제"
+    category: politics
+    type: rss
+    url: "https://www.mk.co.kr/rss/30200030/"
+    enabled: true
+    priority: 2
+
+  - id: mk_society
+    name: "매일경제 사회"
+    publisher: "매일경제"
+    category: society
+    type: rss
+    url: "https://www.mk.co.kr/rss/50400012/"
+    enabled: true
+    priority: 2
+
+  - id: mk_international
+    name: "매일경제 국제"
+    publisher: "매일경제"
+    category: international
+    type: rss
+    url: "https://www.mk.co.kr/rss/30300018/"
+    enabled: true
+    priority: 2
+
+  - id: mk_business
+    name: "매일경제 기업·경영"
+    publisher: "매일경제"
+    category: business
+    type: rss
+    url: "https://www.mk.co.kr/rss/50100032/"
+    enabled: true
+    priority: 1
+
+  - id: mk_stock
+    name: "매일경제 증권"
+    publisher: "매일경제"
+    category: stock
+    type: rss
+    url: "https://www.mk.co.kr/rss/50200011/"
+    enabled: true
+    priority: 1
+
+  - id: mk_realestate
+    name: "매일경제 부동산"
+    publisher: "매일경제"
+    category: realestate
+    type: rss
+    url: "https://www.mk.co.kr/rss/50300009/"
+    enabled: true
+    priority: 1
+
+  - id: mk_money
+    name: "매일경제 머니앤리치스"
+    publisher: "매일경제"
+    category: finance
+    type: rss
+    url: "https://www.mk.co.kr/rss/40200003/"
+    enabled: true
+    priority: 1
+
+  - id: mk_economy_all
+    name: "매일경제 이코노미 전체기사"
+    publisher: "매일경제"
+    category: economy
+    type: rss
+    url: "https://www.mk.co.kr/rss/50000001/"
+    enabled: true
+    priority: 2
+
+
+  # =========================================================
+  # 매일경제TV
+  # =========================================================
+
+  - id: mktv_all
+    name: "매일경제TV 전체뉴스"
+    publisher: "매일경제TV"
+    category: news
+    type: rss
+    url: "https://mmoney.mk.co.kr/rss/news"
+    enabled: true
+    priority: 2
+
+  - id: mktv_stock
+    name: "매일경제TV 증권"
+    publisher: "매일경제TV"
+    category: stock
+    type: rss
+    url: "https://mmoney.mk.co.kr/rss/news/stock"
+    enabled: true
+    priority: 1
+
+  - id: mktv_estate
+    name: "매일경제TV 부동산"
+    publisher: "매일경제TV"
+    category: realestate
+    type: rss
+    url: "https://mmoney.mk.co.kr/rss/news/estate"
+    enabled: true
+    priority: 1
+
+  - id: mktv_finance
+    name: "매일경제TV 금융"
+    publisher: "매일경제TV"
+    category: finance
+    type: rss
+    url: "https://mmoney.mk.co.kr/rss/news/finance"
+    enabled: true
+    priority: 1
+
+  - id: mktv_economy
+    name: "매일경제TV 경제"
+    publisher: "매일경제TV"
+    category: economy
+    type: rss
+    url: "https://mmoney.mk.co.kr/rss/news/economy"
+    enabled: true
+    priority: 1
+
+  - id: mktv_management
+    name: "매일경제TV 경영"
+    publisher: "매일경제TV"
+    category: business
+    type: rss
+    url: "https://mmoney.mk.co.kr/rss/news/management"
+    enabled: true
+    priority: 2
+
+  - id: mktv_foundation
+    name: "매일경제TV 창업"
+    publisher: "매일경제TV"
+    category: small_business
+    type: rss
+    url: "https://mmoney.mk.co.kr/rss/news/foundation"
+    enabled: true
+    priority: 1
+
+
+  # =========================================================
+  # 한국경제
+  # =========================================================
+
+  - id: hankyung_all
+    name: "한국경제 전체뉴스"
+    publisher: "한국경제"
+    category: news
+    type: rss
+    url: "https://www.hankyung.com/feed/all-news"
+    enabled: true
+    priority: 1
+
+  - id: hankyung_finance
+    name: "한국경제 증권"
+    publisher: "한국경제"
+    category: stock
+    type: rss
+    url: "https://www.hankyung.com/feed/finance"
+    enabled: true
+    priority: 1
+
+  - id: hankyung_economy
+    name: "한국경제 경제"
+    publisher: "한국경제"
+    category: economy
+    type: rss
+    url: "https://www.hankyung.com/feed/economy"
+    enabled: true
+    priority: 1
+
+  - id: hankyung_realestate
+    name: "한국경제 부동산"
+    publisher: "한국경제"
+    category: realestate
+    type: rss
+    url: "https://www.hankyung.com/feed/realestate"
+    enabled: true
+    priority: 1
+
+  - id: hankyung_it
+    name: "한국경제 IT"
+    publisher: "한국경제"
+    category: technology
+    type: rss
+    url: "https://www.hankyung.com/feed/it"
+    enabled: true
+    priority: 2
+
+  - id: hankyung_politics
+    name: "한국경제 정치"
+    publisher: "한국경제"
+    category: politics
+    type: rss
+    url: "https://www.hankyung.com/feed/politics"
+    enabled: true
+    priority: 2
+
+  - id: hankyung_international
+    name: "한국경제 국제"
+    publisher: "한국경제"
+    category: international
+    type: rss
+    url: "https://www.hankyung.com/feed/international"
+    enabled: true
+    priority: 2
+
+  - id: hankyung_society
+    name: "한국경제 사회"
+    publisher: "한국경제"
+    category: society
+    type: rss
+    url: "https://www.hankyung.com/feed/society"
+    enabled: true
+    priority: 2
+
+
+  # =========================================================
+  # 한국은행
+  # =========================================================
+
+  - id: bok_press_all
+    name: "한국은행 보도자료 전체"
+    publisher: "한국은행"
+    category: economy
+    type: rss
+    url: "https://www.bok.or.kr/portal/bbs/B0000552/news.rss?menuNo=200690"
+    enabled: true
+    priority: 1
+
+  - id: bok_monetary_policy
+    name: "한국은행 통화정책 보도자료"
+    publisher: "한국은행"
+    category: economy
+    subcategory: monetary_policy
+    type: rss
+    url: "https://www.bok.or.kr/portal/bbs/P0000559/news.rss?menuNo=200690"
+    enabled: true
+    priority: 1
+
+  - id: bok_economic_statistics
+    name: "한국은행 경제통계 보도자료"
+    publisher: "한국은행"
+    category: economy
+    subcategory: statistics
+    type: rss
+    url: "https://www.bok.or.kr/portal/bbs/B0000501/news.rss?menuNo=201264"
+    enabled: true
+    priority: 1
+
+  - id: bok_mpc_decisions
+    name: "한국은행 금융통화위원회 의결사항"
+    publisher: "한국은행"
+    category: economy
+    subcategory: monetary_policy
+    type: rss
+    url: "https://www.bok.or.kr/portal/bbs/P0000093/news.rss?menuNo=200761"
+    enabled: true
+    priority: 1
+
+  - id: bok_mpc_minutes
+    name: "한국은행 금융통화위원회 의사록"
+    publisher: "한국은행"
+    category: economy
+    subcategory: monetary_policy
+    type: rss
+    url: "https://www.bok.or.kr/portal/bbs/B0000245/news.rss?menuNo=200789"
+    enabled: true
+    priority: 1
+
+  - id: bok_financial_market_trends
+    name: "한국은행 금융시장 동향"
+    publisher: "한국은행"
+    category: finance
+    type: rss
+    url: "https://www.bok.or.kr/portal/bbs/P0002017/news.rss?menuNo=200365"
+    enabled: true
+    priority: 1
+
+  - id: bok_financial_market_indicators
+    name: "한국은행 금융시장 주요지표"
+    publisher: "한국은행"
+    category: finance
+    type: rss
+    url: "https://www.bok.or.kr/portal/bbs/P0002018/news.rss?menuNo=200366"
+    enabled: true
+    priority: 1
+
+  - id: bok_economic_outlook
+    name: "한국은행 경제전망보고서"
+    publisher: "한국은행"
+    category: economy
+    subcategory: outlook
+    type: rss
+    url: "https://www.bok.or.kr/portal/bbs/P0002359/news.rss?menuNo=200066"
+    enabled: true
+    priority: 1
+
+  - id: bok_financial_stability
+    name: "한국은행 금융안정보고서"
+    publisher: "한국은행"
+    category: finance
+    subcategory: financial_stability
+    type: rss
+    url: "https://www.bok.or.kr/portal/bbs/P0000593/news.rss?menuNo=200068"
+    enabled: true
+    priority: 1
+
+
+  # =========================================================
+  # 금융위원회
+  # =========================================================
+
+  - id: fsc_press
+    name: "금융위원회 보도자료"
+    publisher: "금융위원회"
+    category: finance
+    type: rss
+    url: "http://www.fsc.go.kr/about/fsc_bbs_rss/?fid=0111"
+    enabled: true
+    priority: 1
+
+  - id: fsc_explanation
+    name: "금융위원회 보도설명"
+    publisher: "금융위원회"
+    category: finance
+    type: rss
+    url: "http://www.fsc.go.kr/about/fsc_bbs_rss/?fid=0112"
+    enabled: true
+    priority: 1
+
+  - id: fsc_notice
+    name: "금융위원회 공지사항"
+    publisher: "금융위원회"
+    category: government_policy
+    type: rss
+    url: "http://www.fsc.go.kr/about/fsc_bbs_rss/?fid=0114"
+    enabled: true
+    priority: 2
+
+
+  # =========================================================
+  # 행정안전부
+  # =========================================================
+
+  - id: mois_press
+    name: "행정안전부 보도자료"
+    publisher: "행정안전부"
+    category: government_policy
+    type: rss
+    url: "https://www.mois.go.kr/gpms/view/jsp/rss/rss.jsp?ctxCd=1012"
+    enabled: true
+    priority: 1
+
+  - id: mois_explanation
+    name: "행정안전부 설명자료"
+    publisher: "행정안전부"
+    category: government_policy
+    type: rss
+    url: "https://www.mois.go.kr/gpms/view/jsp/rss/rss.jsp?ctxCd=1013"
+    enabled: true
+    priority: 1
+
+  - id: mois_notice
+    name: "행정안전부 알립니다"
+    publisher: "행정안전부"
+    category: government_policy
+    type: rss
+    url: "https://www.mois.go.kr/gpms/view/jsp/rss/rss.jsp?ctxCd=1001"
+    enabled: true
+    priority: 2
+
+
+  # =========================================================
+  # 고용노동부
+  # =========================================================
+
+  - id: moel_notice
+    name: "고용노동부 알려드립니다"
+    publisher: "고용노동부"
+    category: employment_policy
+    type: rss
+    url: "https://www.moel.go.kr/rss/notice.do"
+    enabled: true
+    priority: 1
+
+  - id: moel_policy
+    name: "고용노동부 정책자료"
+    publisher: "고용노동부"
+    category: employment_policy
+    type: rss
+    url: "https://www.moel.go.kr/rss/policy.do"
+    enabled: true
+    priority: 1
+
+  - id: moel_law
+    name: "고용노동부 입법·행정예고"
+    publisher: "고용노동부"
+    category: employment_policy
+    type: rss
+    url: "https://www.moel.go.kr/rss/lawinfo.do"
+    enabled: true
+    priority: 1
+
+
+  # =========================================================
+  # 보건복지부
+  # =========================================================
+
+  - id: mohw_notice
+    name: "보건복지부 공지사항"
+    publisher: "보건복지부"
+    category: welfare_policy
+    type: rss
+    url: "https://www.mohw.go.kr/rss/board.es?mid=a10501010000&bid=0003&cg_code=C01&info"
+    enabled: true
+    priority: 2
+
+  - id: mohw_press
+    name: "보건복지부 보도자료"
+    publisher: "보건복지부"
+    category: welfare_policy
+    type: rss
+    url: "https://www.mohw.go.kr/rss/board.es?mid=a10503000000&bid=0027&info"
+    enabled: true
+    priority: 1
+
+  - id: mohw_rules
+    name: "보건복지부 훈령·예규·고시·지침"
+    publisher: "보건복지부"
+    category: welfare_policy
+    type: rss
+    url: "https://www.mohw.go.kr/rss/board.es?mid=a10409020000&update=&cg_code=&bid=0026"
+    enabled: true
+    priority: 1
+
+
+  # =========================================================
+  # 중소벤처기업부
+  # =========================================================
+
+  - id: mss_press
+    name: "중소벤처기업부 보도자료"
+    publisher: "중소벤처기업부"
+    category: small_business_policy
+    type: rss
+    url: "https://mss.go.kr/rss/smba/board/86.do"
+    enabled: true
+    priority: 1
+
+  - id: mss_notice
+    name: "중소벤처기업부 공지사항"
+    publisher: "중소벤처기업부"
+    category: small_business_policy
+    type: rss
+    url: "https://mss.go.kr/rss/smba/board/81.do"
+    enabled: true
+    priority: 1
+
+  - id: mss_project
+    name: "중소벤처기업부 사업공고"
+    publisher: "중소벤처기업부"
+    category: small_business_policy
+    subcategory: project
+    type: rss
+    url: "https://mss.go.kr/rss/smba/board/310.do"
+    enabled: true
+    priority: 1
+
+  - id: mss_law
+    name: "중소벤처기업부 법령공고"
+    publisher: "중소벤처기업부"
+    category: government_policy
+    type: rss
+    url: "https://mss.go.kr/rss/smba/board/126.do"
+    enabled: true
+    priority: 2
+
+
+  # =========================================================
+  # 농림축산식품부
+  # =========================================================
+
+  - id: mafra_notice
+    name: "농림축산식품부 공지·공고"
+    publisher: "농림축산식품부"
+    category: government_policy
+    type: rss
+    url: "https://www.mafra.go.kr/bbs/home/791/rssList.do?row=50"
+    enabled: true
+    priority: 2
+
+  - id: mafra_press
+    name: "농림축산식품부 보도자료"
+    publisher: "농림축산식품부"
+    category: government_policy
+    type: rss
+    url: "https://www.mafra.go.kr/bbs/home/792/rssList.do?row=50"
+    enabled: true
+    priority: 2
+
+  - id: mafra_explanation
+    name: "농림축산식품부 해명·설명"
+    publisher: "농림축산식품부"
+    category: government_policy
+    type: rss
+    url: "https://www.mafra.go.kr/bbs/home/793/rssList.do?row=50"
+    enabled: true
+    priority: 2
+
+  - id: mafra_law
+    name: "농림축산식품부 입법·행정예고"
+    publisher: "농림축산식품부"
+    category: government_policy
+    type: rss
+    url: "https://www.mafra.go.kr/bbs/home/788/rssList.do?row=50"
+    enabled: true
+    priority: 2
+
+
+  # =========================================================
+  # 과학기술정보통신부
+  # =========================================================
+
+  - id: msit_press
+    name: "과학기술정보통신부 보도자료"
+    publisher: "과학기술정보통신부"
+    category: technology
+    type: rss
+    url: "https://www.msit.go.kr/user/rss/rss.do?bbsSeqNo=94"
+    enabled: true
+    priority: 1
+
+  - id: msit_explanation
+    name: "과학기술정보통신부 보도설명"
+    publisher: "과학기술정보통신부"
+    category: technology
+    type: rss
+    url: "https://www.msit.go.kr/user/rss/rss.do?bbsSeqNo=86"
+    enabled: true
+    priority: 2
+
+  - id: msit_rd
+    name: "과학기술정보통신부 연구개발·미래인재정책"
+    publisher: "과학기술정보통신부"
+    category: technology
+    type: rss
+    url: "https://www.msit.go.kr/user/rss/rss.do?bbsSeqNo=65"
+    enabled: true
+    priority: 1
+
+  - id: msit_science_policy
+    name: "과학기술정보통신부 과학기술정책"
+    publisher: "과학기술정보통신부"
+    category: technology
+    type: rss
+    url: "https://www.msit.go.kr/user/rss/rss.do?bbsSeqNo=70"
+    enabled: true
+    priority: 1
+
+  - id: msit_notice
+    name: "과학기술정보통신부 공지사항"
+    publisher: "과학기술정보통신부"
+    category: government_policy
+    type: rss
+    url: "https://www.msit.go.kr/user/rss/rss.do?bbsSeqNo=96"
+    enabled: true
+    priority: 2
