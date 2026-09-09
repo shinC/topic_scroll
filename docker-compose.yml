@@ -1,0 +1,14 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: topic_scroll:latest
+    container_name: topic_scroll_app
+    env_file:
+      - .env.example
+    environment:
+      - PYTHONPATH=/app/src
+    volumes:
+      - .:/app
+    command: ["run-all"]
