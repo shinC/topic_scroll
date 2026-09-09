@@ -1,0 +1,6 @@
+# AI Agent System Prompt & Workspace Rules
+
+1. DO NOT auto-commit using git. Never run `git commit` unless explicitly instructed by the user in the prompt.
+2. ALWAYS log all user development requests in `/app/REQUEST.md`.
+3. ALWAYS store Implementation Plans and Walkthroughs in `/app/docs/history/YYYYMMDD_<feature_name>/` and link them in `REQUEST.md`.
+4. ALWAYS keep `/app/requirements.txt` updated when installing new Python packages.
