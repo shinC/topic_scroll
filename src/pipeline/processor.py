@@ -1,19 +1,22 @@
 import hashlib
-from typing import List, Set
+from datetime import datetime, timezone, timedelta
+from typing import List, Optional, Set
 from models.article import Article
 from utils.logger import logger
 
 
 class ArticleProcessor:
     """
-    수집된 기사 데이터를 정제하고 중복을 제거하는 처리기
+    수집된 기사 데이터를 정제하고 중복을 제거하며, 5일 이상 지난 데이터를 필터링하는 처리기
     """
 
-    def __init__(self):
+    def __init__(self, max_age_days: int = 5):
         self._seen_urls: Set[str] = set()
         self._seen_hashes: Set[str] = set()
+        self.max_age_days = max_age_days
         # 키워드 매칭 설정 로드
         self._load_keywords()
+
 
 
     def _load_keywords(self) -> None:
@@ -59,11 +62,24 @@ class ArticleProcessor:
 
     def process(self, articles: List[Article]) -> List[Article]:
         """
-        기사 목록에서 중복 기사를 제거하고 데이터 필드를 정지/보정합니다.
+        기사 목록에서 중복 기사를 제거하고, 5일 이상 지난 기사를 제외하며 데이터 필드를 정제합니다.
         """
         processed_articles: List[Article] = []
+        now = datetime.now(timezone.utc)
 
         for article in articles:
+            # 0. 5일 이상 차이나는 오래된 기사 제외 (published_at 기준)
+            if article.published_at:
+                pub_at = article.published_at
+                if pub_at.tzinfo is None:
+                    pub_at = pub_at.replace(tzinfo=timezone.utc)
+                age_days = (now - pub_at).total_seconds() / 86400.0
+                if age_days >= self.max_age_days:
+                    logger.info(
+                        f"5일 이상 경과 기사 제외 ({pub_at.strftime('%Y-%m-%d')}, {age_days:.1f}일 경과): {article.title}"
+                    )
+                    continue
+
             # 1. URL 중복 체크
             if article.url in self._seen_urls:
                 logger.debug(f"중복 기사 제외 (URL): {article.url}")

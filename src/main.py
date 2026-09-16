@@ -26,10 +26,10 @@ def main_callback(ctx: typer.Context):
     """스크래퍼 자동 등록 및 환경 구성을 초기화합니다."""
     scraper_registry.auto_discover()
     if ctx.invoked_subcommand is None:
-        console.print("[bold yellow]안내: 서브 명령어가 지정되지 않아 전체 뉴스 수집(run-all)을 실행합니다.[/bold yellow]")
-        console.print("[dim]개별 실행 옵션: python src/main.py run-rss | python src/main.py run-portal | python src/main.py list[/dim]\n")
+        console.print("[bold blue]전체 뉴스/포털 수집 실행 (python src/main.py)...[/bold blue]\n")
         all_names = [s.name for s in scraper_registry.get_all_scrapers()]
         asyncio.run(_run_target_scrapers(all_names, settings.EXPORT_FORMAT, True))
+
 
 
 
@@ -55,7 +55,7 @@ def list_scrapers():
 
 
 async def _run_target_scrapers(
-    target_names: list[str], export_format: str, export_sheets: bool
+    target_names: list[str], export_format: str, export_sheets: bool, save_file: bool = False
 ):
     """지정한 스크래퍼 목록 비동기 실행 및 내보내기 처리 내부 함수"""
     scrapers = [
@@ -93,10 +93,15 @@ async def _run_target_scrapers(
             res.total_count = len(res.articles)
             all_processed_articles.extend(res.articles)
 
-            output_file = exporter.export_result(res, format_type=export_format)
-            console.print(
-                f" - [{res.site_name}] {res.total_count}개 수집 완료 -> 파일 저장: [cyan]{output_file}[/cyan]"
-            )
+            if save_file:
+                output_file = exporter.export_result(res, format_type=export_format)
+                console.print(
+                    f" - [{res.site_name}] {res.total_count}개 수집 완료 -> 로컬 저장: [cyan]{output_file}[/cyan]"
+                )
+            else:
+                console.print(
+                    f" - [{res.site_name}] {res.total_count}개 수집 처리 완료"
+                )
         else:
             console.print(
                 f" - [{res.site_name}] 수집 실패: {res.error_message or '기사를 찾을 수 없습니다.'}"
@@ -106,8 +111,8 @@ async def _run_target_scrapers(
         f"\n[bold green]수집 완료![/bold green] 총 [bold yellow]{len(all_processed_articles)}[/bold yellow]개 기사 수집됨."
     )
 
-    # 구글 스프레드시트 내보내기 (기본 내보내기 또는 --sheets 옵션)
-    if export_sheets or True:  # 기본으로 구글 스프레드시트에 저장
+    # 구글 스프레드시트 내보내기
+    if export_sheets:
         console.print(
             "\n[bold blue][Google Sheets] 구글 스프레드시트로 데이터를 내보내는 중... (덮어쓰기 모드)[/bold blue]"
         )
@@ -131,12 +136,15 @@ def run_rss(
     sheets: bool = typer.Option(
         True, "--sheets/--no-sheets", help="구글 스프레드시트 자동 덮어쓰기 저장 여부"
     ),
+    save_file: bool = typer.Option(
+        False, "--save-file/--no-save-file", help="로컬 백업 파일(data/ 폴더) 저장 여부"
+    ),
 ):
     """
     feeds.yaml 에 정의된 RSS 피드를 수집합니다.
     """
     console.print("[bold blue]RSS 피드 뉴스 수집 실행...[/bold blue]")
-    asyncio.run(_run_target_scrapers(["rss_news"], format, sheets))
+    asyncio.run(_run_target_scrapers(["rss_news"], format, sheets, save_file))
 
 
 @app.command("run-portal")
@@ -147,29 +155,35 @@ def run_portal(
     sheets: bool = typer.Option(
         True, "--sheets/--no-sheets", help="구글 스프레드시트 자동 덮어쓰기 저장 여부"
     ),
+    save_file: bool = typer.Option(
+        False, "--save-file/--no-save-file", help="로컬 백업 파일(data/ 폴더) 저장 여부"
+    ),
 ):
     """
     portal.yaml 에 정의된 포털 사이트 공지/소식을 수집합니다.
     """
     console.print("[bold blue]포털 사이트 크롤링 수집 실행...[/bold blue]")
-    asyncio.run(_run_target_scrapers(["portal_news"], format, sheets))
+    asyncio.run(_run_target_scrapers(["portal_news"], format, sheets, save_file))
 
 
 @app.command("run")
 def run_scraper(
-    name: str = typer.Argument(..., help="실행할 스크래퍼 이름 (예: rss_news, portal_news, sample_news)"),
+    name: str = typer.Argument(..., help="실행할 스크래퍼 이름 (예: rss_news, portal_news)"),
     format: str = typer.Option(
         settings.EXPORT_FORMAT, "--format", "-f", help="파일 저장 포맷 (json, jsonl, csv)"
     ),
     sheets: bool = typer.Option(
         True, "--sheets/--no-sheets", help="구글 스프레드시트 자동 덮어쓰기 저장 여부"
     ),
+    save_file: bool = typer.Option(
+        False, "--save-file/--no-save-file", help="로컬 백업 파일(data/ 폴더) 저장 여부"
+    ),
 ):
     """
     지정한 개별 스크래퍼를 실행합니다.
     """
     console.print(f"[bold blue]'{name}' 스크래퍼 실행 중...[/bold blue]")
-    asyncio.run(_run_target_scrapers([name], format, sheets))
+    asyncio.run(_run_target_scrapers([name], format, sheets, save_file))
 
 
 @app.command("run-all")
@@ -180,13 +194,16 @@ def run_all_scrapers(
     sheets: bool = typer.Option(
         True, "--sheets/--no-sheets", help="구글 스프레드시트 자동 덮어쓰기 저장 여부"
     ),
+    save_file: bool = typer.Option(
+        False, "--save-file/--no-save-file", help="로컬 백업 파일(data/ 폴더) 저장 여부"
+    ),
 ):
     """
     RSS 피드와 포털 크롤러를 모두 포함하여 전체 수집을 실행합니다.
     """
     console.print("[bold blue]전체 뉴스 수집 시작...[/bold blue]")
     all_names = [s.name for s in scraper_registry.get_all_scrapers()]
-    asyncio.run(_run_target_scrapers(all_names, format, sheets))
+    asyncio.run(_run_target_scrapers(all_names, format, sheets, save_file))
 
 
 if __name__ == "__main__":

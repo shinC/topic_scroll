@@ -11,7 +11,7 @@ portal_sources:
     publisher: "행정안전부"
     category: government_policy
     type: portal
-    url: "https://www.gov.kr/portal/main"
+    url: "https://www.gov.kr/portal/gvrnPolicy?srchOrder=&pageIndex=1&policyType=G00301&streamYn=&publishOrgNm=&blgCd=&slgCd=&srchBlgCd=&srchSlgCd=&srchOrgGroup=&srchOriginOrg=&srchPeriodOption=all&srchStDtFmt=&srchEdDtFmt=&searchField=3&srchTxt=&srchTxt2="
     enabled: true
     crawler: page
     priority: 1
@@ -48,7 +48,7 @@ portal_sources:
     publisher: "고용노동부 / 한국고용정보원"
     category: employment_policy
     type: portal
-    url: "https://www.work24.go.kr/cm/main.do"
+    url: "https://www.work24.go.kr/wk/r/g/1110/retrieveEmpNewsList.do?currentPageNo=1&recordCountPerPage=10&searchIntrstCoYn=N"
     enabled: true
     crawler: page
     priority: 1
@@ -66,11 +66,27 @@ portal_sources:
   # =========================================================
 
   - id: bokjiro
-    name: "복지로"
+    name: "복지로 중앙"
     publisher: "보건복지부"
     category: welfare_policy
     type: portal
-    url: "https://www.bokjiro.go.kr/"
+    url: "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52005M.do?page=1&orderBy=date&tabId=1"
+    enabled: true
+    crawler: page
+    priority: 1
+    purpose:
+      - welfare
+      - benefits
+      - welfare_services
+      - eligibility
+
+
+  - id: bokjiro
+    name: "복지로 지방"
+    publisher: "보건복지부"
+    category: welfare_policy
+    type: portal
+    url: "https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52005M.do?page=1&orderBy=date&tabId=2"
     enabled: true
     crawler: page
     priority: 1
@@ -90,7 +106,7 @@ portal_sources:
     publisher: "국토교통부"
     category: realestate
     type: portal
-    url: "https://www.molit.go.kr/"
+    url: "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp"
     enabled: true
     crawler: page
     priority: 1
