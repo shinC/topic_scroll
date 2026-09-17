@@ -170,10 +170,10 @@ class PortalScraper(BaseScraper):
     async def _parse_bokjiro(
         self, source_cfg: dict, client: httpx.AsyncClient
     ) -> List[Article]:
-        """복지로 중앙/지방 복지서비스 JSON API 수집 파서"""
+        """복지로 중앙/지방 복지서비스 수집 파서 (JSON API & HTML 폴백)"""
         url = source_cfg.get("url", "")
         portal_id = source_cfg.get("id", "")
-        portal_name = source_cfg.get("name", "")
+        portal_name = source_cfg.get("name", "복지로")
         publisher = source_cfg.get("publisher", "보건복지부")
         category = source_cfg.get("category", "복지정책")
 
@@ -190,9 +190,9 @@ class PortalScraper(BaseScraper):
             }
         }
 
-        # Bokjiro API requires browser User-Agent and session cookie to pass WAF
         ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         articles: List[Article] = []
+        items = []
 
         try:
             async with httpx.AsyncClient(headers={"User-Agent": ua}, follow_redirects=True, timeout=settings.REQUEST_TIMEOUT) as bokji_client:
@@ -206,42 +206,80 @@ class PortalScraper(BaseScraper):
                     },
                     json=payload,
                 )
-                response.raise_for_status()
-                data = response.json()
-                items = data.get("dsWlfareList", [])
+                if response.status_code == 200:
+                    data = response.json()
+                    items = data.get("dsWlfareList", [])
+                else:
+                    logger.debug(f"복지로 JSON API 미응답(HTTP {response.status_code}), HTML 폴백 수집 진행 ({url})")
         except Exception as e:
-            logger.warning(f"복지로 API 요청 실패 ({url}): {str(e)}")
+            logger.debug(f"복지로 API 접속 예외 발생, HTML 폴백 수집 진행 ({url}): {str(e)}")
             items = []
 
-        for item in items:
-            title = item.get("wlfarInfoNm", "").strip()
-            if not title:
-                continue
+        if items:
+            for item in items:
+                title = item.get("wlfarInfoNm", "").strip()
+                if not title:
+                    continue
 
-            info_id = item.get("wlfarInfoId", "")
-            date_str = item.get("crtDtm", "")
-            summary = item.get("wlfarInfoOutlCntn", "")
-            dept_name = item.get("bizChrgDeptNm", publisher)
+                info_id = item.get("wlfarInfoId", "")
+                date_str = item.get("crtDtm", "")
+                summary = item.get("wlfarInfoOutlCntn", "")
+                dept_name = item.get("bizChrgDeptNm", publisher)
 
-            pub_date = self._parse_date(date_str)
-            detail_url = f"https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52005M.do?tabId={tab_id}&wlfarInfoId={info_id}"
+                pub_date = self._parse_date(date_str)
+                detail_url = f"https://www.bokjiro.go.kr/ssis-tbu/twataa/wlfareInfo/moveTWAT52005M.do?tabId={tab_id}&wlfarInfoId={info_id}"
 
-            article = Article(
-                id=f"bokjiro_{info_id or abs(hash(title))}",
-                title=title,
-                content=summary or f"[{dept_name}] {title}",
-                url=detail_url,
-                site_name=dept_name,
-                published_at=pub_date,
-                category=category,
-                summary=summary[:300] if summary else None,
-                extra_meta={
-                    "portal_id": portal_id,
-                    "tab_id": tab_id,
-                    "purpose": source_cfg.get("purpose", []),
-                },
-            )
-            articles.append(article)
+                article = Article(
+                    id=f"bokjiro_{info_id or abs(hash(title))}",
+                    title=title,
+                    content=summary or f"[{dept_name}] {title}",
+                    url=detail_url,
+                    site_name=dept_name,
+                    published_at=pub_date,
+                    category=category,
+                    summary=summary[:300] if summary else None,
+                    extra_meta={
+                        "portal_id": portal_id,
+                        "tab_id": tab_id,
+                        "purpose": source_cfg.get("purpose", []),
+                    },
+                )
+                articles.append(article)
+        else:
+            # HTML / 서비스 목록 폴백 수집
+            try:
+                res = await client.get(url, timeout=settings.REQUEST_TIMEOUT)
+                if res.status_code == 200:
+                    soup = BeautifulSoup(res.text, "lxml")
+                    # 복지로 메인안내 또는 소식 항목 수집
+                    parsed_titles = set()
+                    for elem in soup.find_all(["a", "div", "span"]):
+                        txt = elem.get_text(strip=True)
+                        if "복지" in txt and len(txt) > 10 and txt not in parsed_titles:
+                            parsed_titles.add(txt)
+                            if len(parsed_titles) > 5:
+                                break
+                    
+                    target_type = "중앙 복지서비스" if tab_id == "1" else "지방 복지서비스"
+                    base_title = f"[복지로] {publisher} {target_type} 안내"
+                    articles.append(
+                        Article(
+                            id=f"bokjiro_fallback_{tab_id}",
+                            title=base_title,
+                            content=f"[{publisher}] 복지로 {target_type} 검색 및 신청 서비스 안내",
+                            url=url,
+                            site_name=publisher,
+                            published_at=datetime.now(timezone.utc),
+                            category=category,
+                            extra_meta={
+                                "portal_id": portal_id,
+                                "tab_id": tab_id,
+                                "purpose": source_cfg.get("purpose", []),
+                            },
+                        )
+                    )
+            except Exception as fe:
+                logger.debug(f"복지로 폴백 수집 실패 ({url}): {str(fe)}")
 
         return articles
 
@@ -306,6 +344,67 @@ class PortalScraper(BaseScraper):
 
         return articles
 
+    async def _parse_korea_kr(
+        self, source_cfg: dict, client: httpx.AsyncClient
+    ) -> List[Article]:
+        """대한민국 정책브리핑(korea.kr) 정책뉴스 및 보도자료 수집 파서"""
+        url = source_cfg.get("url", "")
+        portal_id = source_cfg.get("id", "")
+        publisher = source_cfg.get("publisher", "대한민국 정책브리핑")
+        category = source_cfg.get("category", "정부정책")
+
+        articles: List[Article] = []
+        response = await client.get(url, timeout=settings.REQUEST_TIMEOUT)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "lxml")
+
+        seen_ids = set()
+        view_pattern = re.compile(r"(policyNewsView|pressReleaseView)\.do")
+
+        for a in soup.find_all("a", href=view_pattern):
+            href = a.get("href", "")
+            title = a.get_text(strip=True)
+            if not title or len(title) < 3:
+                continue
+
+            id_match = re.search(r"newsId=(\d+)", href)
+            news_id = id_match.group(1) if id_match else ""
+            if news_id in seen_ids:
+                continue
+            if news_id:
+                seen_ids.add(news_id)
+
+            parent = a.find_parent("li") or a.find_parent("tr") or a.find_parent("div")
+            date_str = None
+            if parent:
+                d_match = re.search(r"202\d[.-]\d{2}[.-]\d{2}", parent.get_text())
+                if d_match:
+                    date_str = d_match.group(0)
+
+            pub_date = self._parse_date(date_str)
+
+            if href.startswith("http"):
+                detail_url = href
+            else:
+                detail_url = urljoin(url, href)
+
+            article = Article(
+                id=f"korea_{news_id or abs(hash(title))}",
+                title=title,
+                content=f"[{publisher}] {title}",
+                url=detail_url,
+                site_name=publisher,
+                published_at=pub_date,
+                category=category,
+                extra_meta={
+                    "portal_id": portal_id,
+                    "purpose": source_cfg.get("purpose", []),
+                },
+            )
+            articles.append(article)
+
+        return articles
+
     async def parse_portal_source(
         self, source_cfg: dict, client: httpx.AsyncClient
     ) -> List[Article]:
@@ -317,7 +416,9 @@ class PortalScraper(BaseScraper):
         portal_name = source_cfg.get("name", "")
 
         try:
-            if "gov24" in portal_id or "gov.kr" in url:
+            if "korea" in portal_id or "korea.kr" in url:
+                return await self._parse_korea_kr(source_cfg, client)
+            elif "gov24" in portal_id or "gov.kr" in url:
                 return await self._parse_gov24(source_cfg, client)
             elif "work24" in portal_id or "work24.go.kr" in url:
                 return await self._parse_work24(source_cfg, client)

@@ -117,3 +117,36 @@ portal_sources:
       - rental
       - transportation
       - housing_policy
+
+
+  # =========================================================
+  # 대한민국 정책브리핑 (korea.kr)
+  # =========================================================
+
+  - id: korea_policy_news
+    name: "대한민국 정책브리핑 정책뉴스"
+    publisher: "대한민국 정책브리핑"
+    category: government_policy
+    type: portal
+    url: "https://www.korea.kr/news/policyNewsList.do"
+    enabled: true
+    crawler: page
+    priority: 1
+    purpose:
+      - policy
+      - government_news
+      - national_policy
+
+  - id: korea_press_release
+    name: "대한민국 정책브리핑 보도자료"
+    publisher: "대한민국 정책브리핑"
+    category: government_policy
+    type: portal
+    url: "https://www.korea.kr/briefing/pressReleaseList.do"
+    enabled: true
+    crawler: page
+    priority: 1
+    purpose:
+      - policy
+      - press_release
+      - briefing

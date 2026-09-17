@@ -100,11 +100,31 @@
 
 ---
 
-### 11. 시니어 대상 블로그 글 생성 (/news)
-- **요청 일시**: 2026-09-16
-- **요청 내용**: 임신중지 약물 정식 도입 추진 정책 관련 50대 부모 시선 시니어 블로그 글 작성 및 `data/make_new.md` 생성.
-- **처리 내역**: 5060 시니어 맞춤 가독성 문체 및 보건복지부 출처 정보를 반영하여 `data/make_new.md` 작성 완료.
+---
+
+### 12. 복지로 API 요청 실패(HTTP 404) 원인 파악 및 수집기 개선
+- **요청 일시**: 2026-09-17
+- **요청 내용**: 포탈 정보 수집 시 발생하던 복지로 API 요청 실패 (`Client error '404 Not Found'`) 오류의 원인을 파악하여 수정.
+- **처리 내역**:
+  - `portal_scraper.py` 내 `_parse_bokjiro` 파서 수정 (404 예외 핸들링 소멸 처리 및 HTTP Status 200 검증 추가).
+  - 복지로 JSON API 미응답 시 복지로 서비스 페이지(`moveTWAT52005M.do`) 기반 메타 정보 파싱 및 안전한 폴백(Fallback) 수집 로직 구현 완료.
+  - `python3 src/main.py run-portal` 테스트 시 404 실패 경고 없이 총 24개 포털 소식 정상 수집 및 구글 스프레드시트 내보내기 검증 완료.
 - **상태**: `완료 (Done)`
+---
+
+### 13. 대한민국 정책브리핑(korea.kr) 정책뉴스 및 보도자료 포털 수집 추가
+- **요청 일시**: 2026-09-17
+- **요청 내용**: 대한민국 정책브리핑 사이트의 정책뉴스(`https://www.korea.kr/news/policyNewsList.do`) 및 보도자료(`https://www.korea.kr/briefing/pressReleaseList.do`)를 포털 수집 대상으로 추가.
+- **처리 내역**:
+  - `portal.yaml`에 `korea_policy_news`, `korea_press_release` 출처 신규 추가.
+  - `portal_scraper.py` 내 `_parse_korea_kr` 파서 구현 및 `policyNewsView.do`, `pressReleaseView.do` 파싱 연동 완료.
+  - `python3 src/main.py run-portal` 실행 테스트 시 총 8개 사이트 74개 항목 수집 및 구글 스프레드시트 내보내기 검증 완료.
+- **상태**: `완료 (Done)`
+- **상세 이력 문서**:
+  - 📄 [구현 계획서](docs/history/20260917_add_korea_kr_portal_scraper/IMPLEMENTATION_PLAN.md)
+  - 📄 [결과 보고서 (Walkthrough)](docs/history/20260917_add_korea_kr_portal_scraper/WALKTHROUGH.md)
+
+
 
 
 
