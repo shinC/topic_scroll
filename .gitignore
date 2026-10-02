@@ -35,10 +35,13 @@ venv.bak/
 .idea/
 *.swp
 *.swo
+.DS_Store
+
 
 # Environment Variables & Secrets
 .env
 .env.local
+key/
 
 # Scraping Data & Logs
 data/
@@ -51,3 +54,4 @@ logs/
 
 # Docker
 .docker/
+!.devcontainer/*.json

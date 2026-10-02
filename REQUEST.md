@@ -124,6 +124,65 @@
   - 📄 [구현 계획서](docs/history/20260917_add_korea_kr_portal_scraper/IMPLEMENTATION_PLAN.md)
   - 📄 [결과 보고서 (Walkthrough)](docs/history/20260917_add_korea_kr_portal_scraper/WALKTHROUGH.md)
 
+---
+
+### 14. OrbStack Dev Container 실행용 devcontainer.json 생성
+- **요청 일시**: 2026-09-18
+- **요청 내용**: OrbStack 및 VS Code Dev Containers 환경 실행을 위해 누락되어 있던 `devcontainer.json` 설정 파일 생성.
+- **처리 내역**:
+  - `.devcontainer/devcontainer.json` 파일 생성 완료 (기존 `.devcontainer/Dockerfile` 기반 빌드, `/workspace` 바인드 마운트, `PYTHONPATH` 설정 및 `postCreateCommand`에 `requirements.txt` 설치 등록).
+  - OrbStack 환경에서 Dockerfile 빌드 정상 동작 검증 완료.
+- **상태**: `완료 (Done)`
+- **상세 이력 문서**:
+  - 📄 [구현 계획서](docs/history/20260918_add_devcontainer_config/IMPLEMENTATION_PLAN.md)
+  - 📄 [결과 보고서 (Walkthrough)](docs/history/20260918_add_devcontainer_config/WALKTHROUGH.md)
+
+---
+
+### 15. 보건복지부(mohw.go.kr) 보도자료 포털 수집 추가
+- **요청 일시**: 2026-09-30
+- **요청 내용**: 보건복지부 보도자료(`https://www.mohw.go.kr/board.es?mid=a10503010100&bid=0027`)를 `portal.yaml`에 추가 및 수집 연동.
+- **처리 내역**:
+  - `portal.yaml`에 `mohw_press_release` 포털 출처 신규 등록.
+  - `portal_scraper.py` 내 `_parse_mohw` 전용 파서 구현 및 `parse_portal_source` 분기 연동 완료.
+  - `python3 src/main.py run-portal` 테스트 시 총 9개 포털 사이트 대상 정상 수집 및 전처리 검증 완료 (보건복지부 15개 기사 정상 파싱).
+- **상태**: `완료 (Done)`
+- **상세 이력 문서**:
+  - 📄 [구현 계획서](docs/history/20260930_add_mohw_portal_scraper/IMPLEMENTATION_PLAN.md)
+  - 📄 [결과 보고서 (Walkthrough)](docs/history/20260930_add_mohw_portal_scraper/WALKTHROUGH.md)
+
+---
+
+### 16. 정부24 보조금24(gov24_bojogum24) 설정 및 소스코드 정리
+- **요청 일시**: 2026-09-30
+- **요청 내용**: `portal.yaml`에서 `gov24_bojogum24` 항목 삭제 및 소스코드 내 관련 참조 정리.
+- **처리 내역**:
+  - `portal.yaml`에서 `gov24_bojogum24` 항목 및 설명 주석 삭제 완료.
+  - `portal_scraper.py` 내 `_parse_gov24` docstring 정리 완료.
+  - `python3 src/main.py run-portal` 테스트 시 총 8개 포털 사이트 73건 정상 수집 및 전처리 검증 완료.
+- **상태**: `완료 (Done)`
+- **상세 이력 문서**:
+  - 📄 [구현 계획서](docs/history/20260930_remove_gov24_bojogum24/IMPLEMENTATION_PLAN.md)
+  - 📄 [결과 보고서 (Walkthrough)](docs/history/20260930_remove_gov24_bojogum24/WALKTHROUGH.md)
+
+---
+
+### 17. 매일경제TV(SSL 에러) 및 한국경제(403 Forbidden) RSS 수집 에러 수정
+- **요청 일시**: 2026-09-30
+- **요청 내용**: 매일경제TV SSL Hostname mismatch 오류 및 한국경제 Cloudflare 403 Forbidden 오류 해결.
+- **처리 내역**:
+  - `feeds.yaml`: 매일경제TV 7개 피드 URL을 인증서 일치 도메인(`mbnmoney.mbn.co.kr`)으로 변경하여 SSL 불일치 해소.
+  - `rss_scraper.py`: 한국경제 등 Cloudflare WAF 사이트에 피드 리더 전용 User-Agent 적용 및 403/SSL 예외 발생 시 안전한 Fallback 재시도 로직 구현.
+  - `python3 src/main.py` 실행 시 실패 경고 0건, 총 581개 기사 수집 및 구글 스프레드시트 내보내기 검증 완료.
+- **상태**: `완료 (Done)`
+- **상세 이력 문서**:
+  - 📄 [구현 계획서](docs/history/20260930_fix_mktv_hankyung_rss_errors/IMPLEMENTATION_PLAN.md)
+  - 📄 [결과 보고서 (Walkthrough)](docs/history/20260930_fix_mktv_hankyung_rss_errors/WALKTHROUGH.md)
+
+
+
+
+
 
 
 

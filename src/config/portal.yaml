@@ -3,7 +3,7 @@ version: "1.0"
 portal_sources:
 
   # =========================================================
-  # 정부24 / 보조금24
+  # 정부24
   # =========================================================
 
   - id: gov24
@@ -20,23 +20,6 @@ portal_sources:
       - benefits
       - policy
       - subsidy
-
-  - id: gov24_bojogum24
-    name: "정부24 보조금24"
-    publisher: "행정안전부"
-    category: welfare_policy
-    type: portal
-    url: "https://www.gov.kr/portal/main"
-    enabled: true
-    crawler: page
-    priority: 1
-    purpose:
-      - subsidy
-      - personalized_benefits
-      - government_support
-    note: >
-      보조금24는 정부24 내 서비스로 운영되므로
-      정부24를 기준으로 접근한다.
 
 
   # =========================================================
@@ -150,3 +133,26 @@ portal_sources:
       - policy
       - press_release
       - briefing
+
+
+  # =========================================================
+  # 보건복지부 (mohw.go.kr)
+  # =========================================================
+
+  - id: mohw_press_release
+    name: "보건복지부 보도자료"
+    publisher: "보건복지부"
+    category: welfare_policy
+    type: portal
+    url: "https://www.mohw.go.kr/board.es?mid=a10503010100&bid=0027"
+    enabled: true
+    crawler: page
+    priority: 1
+    purpose:
+      - welfare
+      - healthcare
+      - press_release
+      - policy
+
+
+

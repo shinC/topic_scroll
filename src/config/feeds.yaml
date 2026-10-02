@@ -125,7 +125,7 @@ rss_feeds:
     publisher: "매일경제TV"
     category: news
     type: rss
-    url: "https://mmoney.mk.co.kr/rss/news"
+    url: "https://mbnmoney.mbn.co.kr/rss/news"
     enabled: true
     priority: 2
 
@@ -134,7 +134,7 @@ rss_feeds:
     publisher: "매일경제TV"
     category: stock
     type: rss
-    url: "https://mmoney.mk.co.kr/rss/news/stock"
+    url: "https://mbnmoney.mbn.co.kr/rss/news/stock"
     enabled: true
     priority: 1
 
@@ -143,7 +143,7 @@ rss_feeds:
     publisher: "매일경제TV"
     category: realestate
     type: rss
-    url: "https://mmoney.mk.co.kr/rss/news/estate"
+    url: "https://mbnmoney.mbn.co.kr/rss/news/estate"
     enabled: true
     priority: 1
 
@@ -152,7 +152,7 @@ rss_feeds:
     publisher: "매일경제TV"
     category: finance
     type: rss
-    url: "https://mmoney.mk.co.kr/rss/news/finance"
+    url: "https://mbnmoney.mbn.co.kr/rss/news/finance"
     enabled: true
     priority: 1
 
@@ -161,7 +161,7 @@ rss_feeds:
     publisher: "매일경제TV"
     category: economy
     type: rss
-    url: "https://mmoney.mk.co.kr/rss/news/economy"
+    url: "https://mbnmoney.mbn.co.kr/rss/news/economy"
     enabled: true
     priority: 1
 
@@ -170,7 +170,7 @@ rss_feeds:
     publisher: "매일경제TV"
     category: business
     type: rss
-    url: "https://mmoney.mk.co.kr/rss/news/management"
+    url: "https://mbnmoney.mbn.co.kr/rss/news/management"
     enabled: true
     priority: 2
 
@@ -179,7 +179,7 @@ rss_feeds:
     publisher: "매일경제TV"
     category: small_business
     type: rss
-    url: "https://mmoney.mk.co.kr/rss/news/foundation"
+    url: "https://mbnmoney.mbn.co.kr/rss/news/foundation"
     enabled: true
     priority: 1
 

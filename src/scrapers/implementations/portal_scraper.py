@@ -16,7 +16,7 @@ from utils.logger import logger
 @scraper_registry.register
 class PortalScraper(BaseScraper):
     """
-    portal.yaml 에 정의된 정부24, 고용24, 복지로, 국토교통부 등 주요 포털의
+    portal.yaml 에 정의된 정부24, 고용24, 복지로, 국토교통부, 대한민국 정책브리핑, 보건복지부 등 주요 포털의
     공지사항/복지서비스/새소식을 정밀하게 수집하는 웹 크롤러 구현체
     """
 
@@ -49,7 +49,7 @@ class PortalScraper(BaseScraper):
     async def _parse_gov24(
         self, source_cfg: dict, client: httpx.AsyncClient
     ) -> List[Article]:
-        """정부24 정책 및 보조금24 소식 수집 파서"""
+        """정부24 정책 소식 수집 파서"""
         url = source_cfg.get("url", "")
         portal_id = source_cfg.get("id", "")
         publisher = source_cfg.get("publisher", "정부24")
@@ -405,6 +405,72 @@ class PortalScraper(BaseScraper):
 
         return articles
 
+    async def _parse_mohw(
+        self, source_cfg: dict, client: httpx.AsyncClient
+    ) -> List[Article]:
+        """보건복지부(mohw.go.kr) 보도자료 수집 파서"""
+        url = source_cfg.get("url", "")
+        portal_id = source_cfg.get("id", "")
+        publisher = source_cfg.get("publisher", "보건복지부")
+        category = source_cfg.get("category", "복지정책")
+
+        articles: List[Article] = []
+        response = await client.get(url, timeout=settings.REQUEST_TIMEOUT)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, "lxml")
+
+        seen_ids = set()
+        for tr in soup.select("table.tstyle_list tbody tr"):
+            tds = tr.find_all("td")
+            if len(tds) < 4:
+                continue
+
+            a = tds[1].find("a")
+            if not a:
+                continue
+
+            href = a.get("href", "")
+            id_match = re.search(r"list_no=(\d+)", href)
+            list_no = id_match.group(1) if id_match else ""
+
+            # 새글 배지 등 태그 제거
+            for badge in a.find_all(["span", "em", "i", "strong"]):
+                badge.decompose()
+
+            raw_title = a.get_text(strip=True)
+            title = re.sub(r"^새글\s*", "", raw_title).strip()
+            if not title:
+                continue
+
+            item_key = list_no or title
+            if item_key in seen_ids:
+                continue
+            seen_ids.add(item_key)
+
+            dept = tds[2].get_text(strip=True)
+            date_str = tds[3].get_text(strip=True)
+            pub_date = self._parse_date(date_str)
+
+            detail_url = urljoin("https://www.mohw.go.kr", href) if href else url
+
+            article = Article(
+                id=f"mohw_{list_no or abs(hash(title))}",
+                title=title,
+                content=f"[{publisher}{' ' + dept if dept else ''}] {title}",
+                url=detail_url,
+                site_name=publisher,
+                published_at=pub_date,
+                category=category,
+                extra_meta={
+                    "portal_id": portal_id,
+                    "department": dept,
+                    "purpose": source_cfg.get("purpose", []),
+                },
+            )
+            articles.append(article)
+
+        return articles
+
     async def parse_portal_source(
         self, source_cfg: dict, client: httpx.AsyncClient
     ) -> List[Article]:
@@ -418,6 +484,8 @@ class PortalScraper(BaseScraper):
         try:
             if "korea" in portal_id or "korea.kr" in url:
                 return await self._parse_korea_kr(source_cfg, client)
+            elif "mohw" in portal_id or "mohw.go.kr" in url:
+                return await self._parse_mohw(source_cfg, client)
             elif "gov24" in portal_id or "gov.kr" in url:
                 return await self._parse_gov24(source_cfg, client)
             elif "work24" in portal_id or "work24.go.kr" in url:

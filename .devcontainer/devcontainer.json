@@ -1,0 +1,27 @@
+{
+  "name": "topic_scroll (Python 3.14 - Docker Compose)",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/app",
+  "overrideCommand": true,
+  "remoteUser": "root",
+  "postCreateCommand": "pip install -e .",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.analysis.extraPaths": [
+          "/app/src"
+        ],
+        "editor.formatOnSave": true
+      },
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "tamasfe.even-better-toml",
+        "eamodio.gitlens"
+      ]
+    }
+  }
+}

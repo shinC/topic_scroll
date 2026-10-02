@@ -46,8 +46,36 @@ class RSSScraper(BaseScraper):
 
         articles: List[Article] = []
         try:
-            response = await client.get(url, timeout=settings.REQUEST_TIMEOUT)
-            response.raise_for_status()
+            # Cloudflare WAF를 사용하는 사이트(hankyung.com 등)는 전용 피드 리더 User-Agent 사용
+            feed_headers = None
+            if "hankyung.com" in (url or ""):
+                feed_headers = {
+                    "User-Agent": "Mozilla/5.0 (compatible; FeedFetcher-Google; +http://www.google.com/feedfetcher.html)",
+                    "Accept": "application/rss+xml, application/xml, text/xml, */*",
+                }
+
+            try:
+                response = await client.get(
+                    url,
+                    headers=feed_headers,
+                    timeout=settings.REQUEST_TIMEOUT,
+                )
+                response.raise_for_status()
+            except (httpx.HTTPStatusError, httpx.RequestError):
+                # 403 차단 또는 SSL/연결 예외 발생 시 피드 리더 UA 및 SSL 유연 폴백 클라이언트로 재시도
+                fallback_headers = {
+                    "User-Agent": "Mozilla/5.0 (compatible; FeedFetcher-Google; +http://www.google.com/feedfetcher.html)",
+                    "Accept": "application/rss+xml, application/xml, text/xml, */*",
+                }
+                async with httpx.AsyncClient(
+                    headers=fallback_headers,
+                    follow_redirects=True,
+                    verify=False,
+                    timeout=settings.REQUEST_TIMEOUT,
+                ) as fallback_client:
+                    response = await fallback_client.get(url)
+                    response.raise_for_status()
+
             content = response.text
 
             # feedparser 로 XML / RSS / Atom 분석
