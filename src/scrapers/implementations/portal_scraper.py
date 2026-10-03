@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import re
 from typing import List, Optional
 from urllib.parse import urljoin
@@ -16,7 +16,7 @@ from utils.logger import logger
 @scraper_registry.register
 class PortalScraper(BaseScraper):
     """
-    portal.yaml 에 정의된 정부24, 고용24, 복지로, 국토교통부, 대한민국 정책브리핑, 보건복지부 등 주요 포털의
+    portal.yaml 에 정의된 정부24, 고용24, 복지로, 국토교통부, 대한민국 정책브리핑, 보건복지부, 블라인드, 포모스 등 주요 포털의
     공지사항/복지서비스/새소식을 정밀하게 수집하는 웹 크롤러 구현체
     """
 
@@ -471,6 +471,330 @@ class PortalScraper(BaseScraper):
 
         return articles
 
+    def _parse_blind_date(self, date_str: Optional[str]) -> Optional[datetime]:
+        """블라인드 작성시간 파싱 (상대시간 및 날짜)"""
+        if not date_str:
+            return None
+        now = datetime.now(timezone.utc)
+        clean_str = date_str.replace("작성시간", "").strip()
+        if not clean_str:
+            return now
+        if "분" in clean_str:
+            m = re.search(r"(\d+)\s*분", clean_str)
+            mins = int(m.group(1)) if m else 0
+            return now - timedelta(minutes=mins)
+        if "시간" in clean_str:
+            m = re.search(r"(\d+)\s*시간", clean_str)
+            hrs = int(m.group(1)) if m else 0
+            return now - timedelta(hours=hrs)
+        if "어제" in clean_str:
+            return now - timedelta(days=1)
+        if "그저께" in clean_str or "2일 전" in clean_str:
+            return now - timedelta(days=2)
+        m_day = re.search(r"(\d+)\s*일", clean_str)
+        if m_day:
+            days = int(m_day.group(1))
+            return now - timedelta(days=days)
+        m_md = re.match(r"^(\d{1,2})\.(\d{1,2})\.?$", clean_str)
+        if m_md:
+            month, day = int(m_md.group(1)), int(m_md.group(2))
+            return datetime(now.year, month, day, tzinfo=timezone.utc)
+        m_ymd = re.match(r"^(\d{4})\.(\d{1,2})\.(\d{1,2})\.?$", clean_str)
+        if m_ymd:
+            y, m, d = int(m_ymd.group(1)), int(m_ymd.group(2)), int(m_ymd.group(3))
+            return datetime(y, m, d, tzinfo=timezone.utc)
+        return now
+
+    async def _parse_teamblind(
+        self, source_cfg: dict, client: httpx.AsyncClient
+    ) -> List[Article]:
+        """블라인드(teamblind.com) 경제·자산관리 토픽 및 관련 게시글 수집 파서"""
+        url = source_cfg.get("url", "")
+        portal_id = source_cfg.get("id", "teamblind_economy")
+        publisher = source_cfg.get("publisher", "블라인드")
+        category = source_cfg.get("category", "경제·자산관리")
+        target_count = source_cfg.get("target_count", 100)
+
+        # 기본 토픽 URL 및 보조 검색 엔드포인트(100건 수집 달성용)
+        target_urls = [
+            url,
+            "https://www.teamblind.com/kr/search/%EA%B2%BD%EC%A0%9C%C2%B7%EC%9E%90%EC%82%B0%EA%B4%80%EB%A6%AC",
+            "https://www.teamblind.com/kr/search/%EC%9E%90%EC%82%B0%EA%B4%80%EB%A6%AC",
+            "https://www.teamblind.com/kr/search/%EA%B2%BD%EC%A0%9C",
+        ]
+
+        blind_headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+        }
+
+        articles: List[Article] = []
+        seen_ids = set()
+
+        for target_url in target_urls:
+            if len(articles) >= target_count:
+                break
+            try:
+                response = await client.get(
+                    target_url,
+                    headers=blind_headers,
+                    timeout=settings.REQUEST_TIMEOUT,
+                )
+                response.raise_for_status()
+                soup = BeautifulSoup(response.text, "lxml")
+
+                for card in soup.select(".article-list-pre"):
+                    if len(articles) >= target_count:
+                        break
+
+                    a_tit = card.select_one(".tit h3 a")
+                    if not a_tit:
+                        continue
+
+                    href = a_tit.get("href", "")
+                    if not href or "/kr/post/" not in href or "coupang.com" in href:
+                        continue
+
+                    for badge in a_tit.find_all(["span", "em", "i", "strong"]):
+                        badge.decompose()
+
+                    title = a_tit.get_text(strip=True)
+                    if not title:
+                        continue
+
+                    alias_match = re.search(r"-([a-zA-Z0-9]+)$", href)
+                    post_id = alias_match.group(1) if alias_match else href
+                    if post_id in seen_ids:
+                        continue
+                    seen_ids.add(post_id)
+
+                    p_desc = card.select_one(".pre-txt a")
+                    content_preview = p_desc.get_text(strip=True) if p_desc else title
+
+                    author_el = card.select_one(".sub p.name a")
+                    author = author_el.get_text(strip=True) if author_el else ""
+
+                    date_el = card.select_one(".wrap-info a.past")
+                    date_str = date_el.get_text(strip=True) if date_el else ""
+                    pub_date = self._parse_blind_date(date_str)
+
+                    detail_url = urljoin("https://www.teamblind.com", href)
+
+                    article = Article(
+                        id=f"blind_{post_id}",
+                        title=title,
+                        content=f"[{author}] {content_preview}" if author else content_preview,
+                        url=detail_url,
+                        site_name=publisher,
+                        published_at=pub_date,
+                        category=category,
+                        extra_meta={
+                            "portal_id": portal_id,
+                            "author": author,
+                            "raw_date": date_str,
+                            "purpose": source_cfg.get("purpose", []),
+                        },
+                    )
+                    articles.append(article)
+            except Exception as e:
+                logger.warning(f"블라인드 수집 중 오류 발생 ({target_url}): {e}")
+                continue
+
+        logger.info(f"[블라인드] 총 {len(articles)}개 게시글 수집 완료")
+        return articles
+
+    def _parse_fomos_date(self, date_str: Optional[str]) -> Optional[datetime]:
+        """포모스 등록일시 파싱 ('14:33', '09-13', 'YYYY-MM-DD')"""
+        if not date_str:
+            return None
+        now = datetime.now(timezone.utc)
+        clean_str = date_str.strip()
+        if not clean_str:
+            return now
+        # 당일 시:분 (예: 14:33)
+        if re.match(r"^\d{1,2}:\d{2}$", clean_str):
+            h, m = map(int, clean_str.split(":"))
+            return datetime(now.year, now.month, now.day, h, m, tzinfo=timezone.utc)
+        # 당해 월-일 (예: 09-13)
+        if re.match(r"^\d{1,2}-\d{1,2}$", clean_str):
+            m, d = map(int, clean_str.split("-"))
+            return datetime(now.year, m, d, tzinfo=timezone.utc)
+        # 전체 년-월-일 (예: 2024-09-13)
+        if re.match(r"^\d{4}-\d{1,2}-\d{1,2}$", clean_str):
+            y, m, d = map(int, clean_str.split("-"))
+            return datetime(y, m, d, tzinfo=timezone.utc)
+        return now
+
+    async def _parse_fomos(
+        self, source_cfg: dict, client: httpx.AsyncClient
+    ) -> List[Article]:
+        """
+        포모스(fomos.kr) 가십 게시판 수집 파서:
+        1. 가십 실시간 인기 (10개)
+        2. 가십 주간 인기 (10개)
+        3. 게시판 일반 목록 (최대 100개, page 페이징)
+        """
+        base_url = source_cfg.get("url", "https://www.fomos.kr/talk/article_list?bbs_id=4")
+        portal_id = source_cfg.get("id", "fomos_talk_gossip")
+        publisher = source_cfg.get("publisher", "포모스")
+        category = source_cfg.get("category", "커뮤니티")
+        target_count = source_cfg.get("target_count", 100)
+
+        fomos_headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+        }
+
+        articles: List[Article] = []
+        now = datetime.now(timezone.utc)
+
+        first_page_url = base_url if "page=" in base_url else f"{base_url}&page=1"
+        try:
+            response = await client.get(first_page_url, headers=fomos_headers, timeout=settings.REQUEST_TIMEOUT)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, "lxml")
+        except Exception as e:
+            logger.warning(f"포모스 1페이지 로드 실패 ({first_page_url}): {e}")
+            return []
+
+        # (1) 가십 실시간 인기 (10개)
+        box_left = soup.select_one(".postbox.left")
+        if box_left:
+            for a in box_left.find_all("a"):
+                href = a.get("href", "")
+                raw_title = a.get_text(strip=True)
+                title = re.sub(r"\(\d+\)$", "", raw_title).strip()
+                if not title:
+                    continue
+                idx_match = re.search(r"indexno=(\d+)", href)
+                idx = idx_match.group(1) if idx_match else abs(hash(title))
+                detail_url = f"https://www.fomos.kr/talk/article_view?bbs_id=4&indexno={idx}"
+                article = Article(
+                    id=f"fomos_popular_realtime_{idx}",
+                    title=f"[실시간 인기] {title}",
+                    content=f"[{publisher} 가십 실시간 인기] {title}",
+                    url=f"{detail_url}#realtime",
+                    site_name=publisher,
+                    published_at=now,
+                    category=category,
+                    extra_meta={
+                        "portal_id": portal_id,
+                        "section": "realtime_popular",
+                        "purpose": source_cfg.get("purpose", []),
+                    },
+                )
+                articles.append(article)
+
+        # (2) 가십 주간 인기 (10개)
+        box_right = soup.select_one(".postbox.right")
+        if box_right:
+            for a in box_right.find_all("a"):
+                href = a.get("href", "")
+                raw_title = a.get_text(strip=True)
+                title = re.sub(r"\(\d+\)$", "", raw_title).strip()
+                if not title:
+                    continue
+                idx_match = re.search(r"indexno=(\d+)", href)
+                idx = idx_match.group(1) if idx_match else abs(hash(title))
+                detail_url = f"https://www.fomos.kr/talk/article_view?bbs_id=4&indexno={idx}"
+                article = Article(
+                    id=f"fomos_popular_weekly_{idx}",
+                    title=f"[주간 인기] {title}",
+                    content=f"[{publisher} 가십 주간 인기] {title}",
+                    url=f"{detail_url}#weekly",
+                    site_name=publisher,
+                    published_at=now,
+                    category=category,
+                    extra_meta={
+                        "portal_id": portal_id,
+                        "section": "weekly_popular",
+                        "purpose": source_cfg.get("purpose", []),
+                    },
+                )
+                articles.append(article)
+
+        # (3) 게시판 일반 목록 수집 (target_count 기본 100개 목표)
+        board_count = 0
+        current_page = 1
+        current_soup = soup
+
+        while board_count < target_count and current_page <= 10:
+            if current_page > 1:
+                page_url = f"https://www.fomos.kr/talk/article_list?bbs_id=4&page={current_page}"
+                try:
+                    await asyncio.sleep(0.3)
+                    p_resp = await client.get(page_url, headers=fomos_headers, timeout=settings.REQUEST_TIMEOUT)
+                    p_resp.raise_for_status()
+                    current_soup = BeautifulSoup(p_resp.text, "lxml")
+                except Exception as e:
+                    logger.warning(f"포모스 {current_page}페이지 로드 실패: {e}")
+                    break
+
+            table = current_soup.select_one("table.board_list")
+            if not table:
+                break
+
+            rows = table.find_all("tr")[1:]  # 헤더 제외
+            for row in rows:
+                if board_count >= target_count:
+                    break
+                tds = row.find_all("td")
+                if len(tds) < 5:
+                    continue
+                num_str = tds[0].get_text(strip=True)
+                if num_str == "공지":
+                    continue
+
+                a_tag = tds[1].find("a")
+                if not a_tag:
+                    continue
+
+                href = a_tag.get("href", "")
+                raw_title = a_tag.get_text(strip=True)
+                title = re.sub(r"\[\d+\]$", "", raw_title).strip()
+                if not title:
+                    continue
+
+                author = tds[2].get_text(strip=True)
+                date_str = tds[3].get_text(strip=True)
+                pub_date = self._parse_fomos_date(date_str)
+                views = tds[4].get_text(strip=True)
+                likes = tds[5].get_text(strip=True) if len(tds) > 5 else "0"
+
+                idx_match = re.search(r"indexno=(\d+)", href)
+                idx = idx_match.group(1) if idx_match else num_str
+                detail_url = f"https://www.fomos.kr/talk/article_view?bbs_id=4&indexno={idx}"
+
+                article = Article(
+                    id=f"fomos_{idx}",
+                    title=title,
+                    content=f"[{author}] {title} (조회 {views}, 공감 {likes})",
+                    url=detail_url,
+                    site_name=publisher,
+                    published_at=pub_date,
+                    category=category,
+                    extra_meta={
+                        "portal_id": portal_id,
+                        "section": "board",
+                        "author": author,
+                        "raw_date": date_str,
+                        "views": views,
+                        "likes": likes,
+                        "purpose": source_cfg.get("purpose", []),
+                    },
+                )
+                articles.append(article)
+                board_count += 1
+
+            current_page += 1
+
+        realtime_cnt = len(box_left.find_all("a")) if box_left else 0
+        weekly_cnt = len(box_right.find_all("a")) if box_right else 0
+        logger.info(f"[포모스] 실시간 {realtime_cnt}개 + 주간 {weekly_cnt}개 + 게시판 {board_count}개 = 총 {len(articles)}개 수집 완료")
+        return articles
+
     async def parse_portal_source(
         self, source_cfg: dict, client: httpx.AsyncClient
     ) -> List[Article]:
@@ -482,7 +806,11 @@ class PortalScraper(BaseScraper):
         portal_name = source_cfg.get("name", "")
 
         try:
-            if "korea" in portal_id or "korea.kr" in url:
+            if "fomos" in portal_id or "fomos.kr" in url:
+                return await self._parse_fomos(source_cfg, client)
+            elif "teamblind" in portal_id or "teamblind.com" in url:
+                return await self._parse_teamblind(source_cfg, client)
+            elif "korea" in portal_id or "korea.kr" in url:
                 return await self._parse_korea_kr(source_cfg, client)
             elif "mohw" in portal_id or "mohw.go.kr" in url:
                 return await self._parse_mohw(source_cfg, client)

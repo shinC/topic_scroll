@@ -155,4 +155,45 @@ portal_sources:
       - policy
 
 
+  # =========================================================
+  # 블라인드 (teamblind.com)
+  # =========================================================
 
+  - id: teamblind_economy
+    name: "블라인드 경제·자산관리"
+    publisher: "블라인드"
+    category: economy_finance
+    type: portal
+    url: "https://www.teamblind.com/kr/topics/%EA%B2%BD%EC%A0%9C%C2%B7%EC%9E%90%EC%82%B0%EA%B4%80%EB%A6%AC"
+    enabled: true
+    crawler: page
+    priority: 1
+    target_count: 100
+    purpose:
+      - economy
+      - asset_management
+      - investment
+      - finance
+      - salary
+
+
+  # =========================================================
+  # 포모스 (fomos.kr)
+  # =========================================================
+
+  - id: fomos_talk_gossip
+    name: "포모스 가십"
+    publisher: "포모스"
+    category: community_gossip
+    type: portal
+    url: "https://www.fomos.kr/talk/article_list?bbs_id=4"
+    enabled: true
+    crawler: page
+    priority: 1
+    target_count: 100
+    purpose:
+      - community
+      - gossip
+      - entertainment
+      - talk
+      - humor

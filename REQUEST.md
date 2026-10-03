@@ -177,16 +177,32 @@
 - **상태**: `완료 (Done)`
 - **상세 이력 문서**:
   - 📄 [구현 계획서](docs/history/20260930_fix_mktv_hankyung_rss_errors/IMPLEMENTATION_PLAN.md)
-  - 📄 [결과 보고서 (Walkthrough)](docs/history/20260930_fix_mktv_hankyung_rss_errors/WALKTHROUGH.md)
+---
 
+### 18. 블라인드(teamblind.com) 경제·자산관리 포털 수집 추가 (100개 수집)
+- **요청 일시**: 2026-10-02
+- **요청 내용**: 블라인드 경제·자산관리(`https://www.teamblind.com/kr/topics/%EA%B2%BD%EC%A0%9C%C2%B7%EC%9E%90%EC%82%B0%EA%B4%80%EB%A6%AC`)를 `portal.yaml`에 추가하고 100개 게시글을 수집하도록 연동.
+- **처리 내역**:
+  - `portal.yaml`에 `teamblind_economy` 출처 신규 등록 (`target_count: 100`).
+  - `portal_scraper.py` 내 `_parse_teamblind` 파서 구현 (기본 토픽 페이지 및 경제/자산관리 관련 검색 엔드포인트를 순회하며 광고 필터링 후 100건 수집).
+  - `_parse_blind_date` 작성시간 변환 헬퍼 구현 (상대 시간 및 날짜 표기를 UTC datetime으로 정밀 변환).
+  - `python3 src/main.py run-portal` 테스트 시 블라인드 100건 정상 수집 및 전처리(최신 5일 이내 기사 선별)/구글 스프레드시트 내보내기 정상 동작 검증 완료.
+- **상태**: `완료 (Done)`
+- **상세 이력 문서**:
+  - 📄 [구현 계획서](docs/history/20261002_add_teamblind_economy_portal/IMPLEMENTATION_PLAN.md)
+  - 📄 [결과 보고서 (Walkthrough)](docs/history/20261002_add_teamblind_economy_portal/WALKTHROUGH.md)
 
+---
 
-
-
-
-
-
-
-
-
-
+### 19. 포모스(fomos.kr) 가십 포털 수집 추가 (100개 + 실시간/주간 인기 각 10개)
+- **요청 일시**: 2026-10-02
+- **요청 내용**: 포모스 가십 게시판(`https://www.fomos.kr/talk/article_list?bbs_id=4`)을 `portal.yaml`에 추가 (게시판 100개 + 가십 실시간 인기 10개 + 가십 주간 인기 10개 동시 수집).
+- **처리 내역**:
+  - `portal.yaml`에 `fomos_talk_gossip` 출처 신규 등록 (`target_count: 100`).
+  - `portal_scraper.py` 내 `_parse_fomos` 파서 구현 (가십 실시간 인기 10개, 가십 주간 인기 10개, 게시판 페이징 순회 100개 = 총 120개 수집).
+  - `_parse_fomos_date` 작성일시 변환 헬퍼 구현 (당일 HH:MM, 월-일 MM-DD, YYYY-MM-DD 대응).
+  - `python3 src/main.py run-portal` 테스트 시 포모스 총 120건 정상 수집 및 전처리/구글 스프레드시트 덮어쓰기 연동 검증 완료.
+- **상태**: `완료 (Done)`
+- **상세 이력 문서**:
+  - 📄 [구현 계획서](docs/history/20261002_add_fomos_talk_gossip_portal/IMPLEMENTATION_PLAN.md)
+  - 📄 [결과 보고서 (Walkthrough)](docs/history/20261002_add_fomos_talk_gossip_portal/WALKTHROUGH.md)
