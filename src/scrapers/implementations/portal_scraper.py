@@ -508,20 +508,21 @@ class PortalScraper(BaseScraper):
     async def _parse_teamblind(
         self, source_cfg: dict, client: httpx.AsyncClient
     ) -> List[Article]:
-        """블라인드(teamblind.com) 경제·자산관리 토픽 및 관련 게시글 수집 파서"""
+        """블라인드(teamblind.com) 토픽 및 베스트 게시글 수집 파서"""
         url = source_cfg.get("url", "")
-        portal_id = source_cfg.get("id", "teamblind_economy")
+        portal_id = source_cfg.get("id", "teamblind")
         publisher = source_cfg.get("publisher", "블라인드")
-        category = source_cfg.get("category", "경제·자산관리")
+        category = source_cfg.get("category", "커뮤니티")
         target_count = source_cfg.get("target_count", 100)
 
-        # 기본 토픽 URL 및 보조 검색 엔드포인트(100건 수집 달성용)
-        target_urls = [
-            url,
-            "https://www.teamblind.com/kr/search/%EA%B2%BD%EC%A0%9C%C2%B7%EC%9E%90%EC%82%B0%EA%B4%80%EB%A6%AC",
-            "https://www.teamblind.com/kr/search/%EC%9E%90%EC%82%B0%EA%B4%80%EB%A6%AC",
-            "https://www.teamblind.com/kr/search/%EA%B2%BD%EC%A0%9C",
-        ]
+        # 기본 토픽 URL 및 보조 검색 엔드포인트
+        target_urls = [url]
+        if portal_id == "teamblind_economy":
+            target_urls.extend([
+                "https://www.teamblind.com/kr/search/%EA%B2%BD%EC%A0%9C%C2%B7%EC%9E%90%EC%82%B0%EA%B4%80%EB%A6%AC",
+                "https://www.teamblind.com/kr/search/%EC%9E%90%EC%82%B0%EA%B4%80%EB%A6%AC",
+                "https://www.teamblind.com/kr/search/%EA%B2%BD%EC%A0%9C",
+            ])
 
         blind_headers = {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
@@ -570,14 +571,17 @@ class PortalScraper(BaseScraper):
                     seen_ids.add(post_id)
 
                     p_desc = card.select_one(".pre-txt a")
-                    content_preview = p_desc.get_text(strip=True) if p_desc else title
+                    content_preview = " ".join(p_desc.get_text().split()) if p_desc else title
 
                     author_el = card.select_one(".sub p.name a")
-                    author = author_el.get_text(strip=True) if author_el else ""
+                    author = " ".join(author_el.get_text().split()) if author_el else ""
 
                     date_el = card.select_one(".wrap-info a.past")
                     date_str = date_el.get_text(strip=True) if date_el else ""
                     pub_date = self._parse_blind_date(date_str)
+
+                    cat_el = card.select_one(".category a.topic-name")
+                    card_category = cat_el.get_text(strip=True) if cat_el else category
 
                     detail_url = urljoin("https://www.teamblind.com", href)
 
@@ -588,9 +592,10 @@ class PortalScraper(BaseScraper):
                         url=detail_url,
                         site_name=publisher,
                         published_at=pub_date,
-                        category=category,
+                        category=card_category,
                         extra_meta={
                             "portal_id": portal_id,
+                            "topic": card_category,
                             "author": author,
                             "raw_date": date_str,
                             "purpose": source_cfg.get("purpose", []),
@@ -601,7 +606,7 @@ class PortalScraper(BaseScraper):
                 logger.warning(f"블라인드 수집 중 오류 발생 ({target_url}): {e}")
                 continue
 
-        logger.info(f"[블라인드] 총 {len(articles)}개 게시글 수집 완료")
+        logger.info(f"[블라인드 - {portal_id}] 총 {len(articles)}개 게시글 수집 완료")
         return articles
 
     def _parse_fomos_date(self, date_str: Optional[str]) -> Optional[datetime]:

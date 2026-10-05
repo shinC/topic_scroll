@@ -206,3 +206,18 @@
 - **상세 이력 문서**:
   - 📄 [구현 계획서](docs/history/20261002_add_fomos_talk_gossip_portal/IMPLEMENTATION_PLAN.md)
   - 📄 [결과 보고서 (Walkthrough)](docs/history/20261002_add_fomos_talk_gossip_portal/WALKTHROUGH.md)
+
+---
+
+### 20. 블라인드(teamblind.com) 토픽 베스트 포털 수집 추가
+- **요청 일시**: 2026-10-03
+- **요청 내용**: 블라인드 토픽 베스트(`https://www.teamblind.com/kr/topics/%ED%86%A0%ED%94%BD-%EB%B2%A0%EC%8A%A4%ED%8A%B8`)를 `portal.yaml`에 추가.
+- **처리 내역**:
+  - `portal.yaml`에 `teamblind_topic_best` 출처 신규 등록 (`target_count: 100`).
+  - `portal_scraper.py` 내 `_parse_teamblind` 파서 개선 (경제·자산관리 검색 엔드포인트 분기 처리 및 토픽 베스트 개별 카테고리 태그 파싱, 작성자 공백 정제).
+  - YAML 파싱 및 메인 스크래퍼 등록 목록 검증 완료.
+- **상태**: `완료 (Done)`
+- **상세 이력 문서**:
+  - 📄 [구현 계획서](docs/history/20261003_add_teamblind_topic_best_portal/IMPLEMENTATION_PLAN.md)
+  - 📄 [결과 보고서 (Walkthrough)](docs/history/20261003_add_teamblind_topic_best_portal/WALKTHROUGH.md)
+

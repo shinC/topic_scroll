@@ -176,6 +176,23 @@ portal_sources:
       - finance
       - salary
 
+  - id: teamblind_topic_best
+    name: "블라인드 토픽 베스트"
+    publisher: "블라인드"
+    category: community_best
+    type: portal
+    url: "https://www.teamblind.com/kr/topics/%ED%86%A0%ED%94%BD-%EB%B2%A0%EC%8A%A4%ED%8A%B8"
+    enabled: true
+    crawler: page
+    priority: 1
+    target_count: 100
+    purpose:
+      - community
+      - topic
+      - best
+      - trending
+      - popular
+
 
   # =========================================================
   # 포모스 (fomos.kr)
