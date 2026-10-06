@@ -235,4 +235,35 @@
   - 📄 [구현 계획서](docs/history/20261006_github_error_fix/IMPLEMENTATION_PLAN.md)
   - 📄 [결과 보고서 (Walkthrough)](docs/history/20261006_github_error_fix/WALKTHROUGH.md)
 
+---
+
+### 22. 기사 본문(초반 300자) 스크랩 및 구글 시트 20개 단위 분할 저장
+- **요청 일시**: 2026-10-06
+- **요청 내용**: 기사 본문 글의 초반 300자 정도를 수집/정제하도록 개선하고, 구글 스프레드시트에 작성할 때 20개 기사 단위로 빈 행(빈칸)을 삽입하여 저장.
+- **처리 내역**:
+  - `rss_scraper.py`: 피드 `summary`/`description` 내 HTML 태그 수거 및 공백 정제 처리 후 300자 본문 세팅.
+  - `google_sheets_exporter.py`: `_clean_body_text()` 헬퍼 구현 및 `"본문 (초반 300자)"` 시트 열 추가.
+  - `google_sheets_exporter.py`: 20개 기사마다 1개의 빈 행(`[""] * 8`)을 삽입하여 구글 시트에 덮어쓰도록 내보내기 로직 구현.
+  - `python3 src/main.py` 실행하여 총 737개 기사 수집 및 구글 시트 20개 단위 분할 저장 검증 완료.
+- **상태**: `완료 (Done)`
+- **상세 이력 문서**:
+  - 📄 [구현 계획서](docs/history/20261006_extract_body_300chars_and_sheet_20row_chunks/IMPLEMENTATION_PLAN.md)
+  - 📄 [결과 보고서 (Walkthrough)](docs/history/20261006_extract_body_300chars_and_sheet_20row_chunks/WALKTHROUGH.md)
+
+---
+
+### 23. 구글 시트 출처별 출력 순서 재정렬 (포모스/블라인드 최상위, 정부정책 최하단)
+- **요청 일시**: 2026-10-06
+- **요청 내용**: 포모스 및 블라인드 커뮤니티 글을 구글 스프레드시트 최상단에 배치하고, 언론사 RSS 뉴스는 중간, 정부 정책 데이터를 가장 하단에 위치하도록 정렬.
+- **처리 내역**:
+  - `google_sheets_exporter.py`: `_get_article_priority()` 헬퍼 구현 (1순위: 포모스/블라인드, 2순위: RSS 뉴스, 3순위: 정부/공공 정책).
+  - `google_sheets_exporter.py`: `export()` 내 2중 정렬(우선순위 그룹 -> 발행일시 내림차순) 적용 후 20개 단위 빈 행 분할 덮어쓰기 완료.
+  - `python3 src/main.py` 실행하여 총 754개 기사 수집 및 시트 상단(포모스/블라인드) - 중간(뉴스) - 하단(정부정책) 정렬 반영 검증 완료.
+- **상태**: `완료 (Done)`
+- **상세 이력 문서**:
+  - 📄 [구현 계획서](docs/history/20261006_reorder_sheet_rows_community_top_govt_bottom/IMPLEMENTATION_PLAN.md)
+  - 📄 [결과 보고서 (Walkthrough)](docs/history/20261006_reorder_sheet_rows_community_top_govt_bottom/WALKTHROUGH.md)
+
+
+
 

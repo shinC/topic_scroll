@@ -118,19 +118,28 @@ class RSSScraper(BaseScraper):
                         mktime(entry.updated_parsed), tz=timezone.utc
                     )
 
-                # 요약 / 본문
-                summary = entry.get("summary", entry.get("description", ""))
+                # 요약 / 본문 텍스트 정제
+                raw_summary = entry.get("summary", entry.get("description", ""))
+                clean_summary = raw_summary
+                if raw_summary and ("<" in raw_summary and ">" in raw_summary):
+                    try:
+                        clean_summary = BeautifulSoup(raw_summary, "html.parser").get_text(separator=" ", strip=True)
+                    except Exception:
+                        clean_summary = raw_summary
+                clean_summary = " ".join(clean_summary.split()) if clean_summary else ""
+
+                content_body = clean_summary[:300] if clean_summary else title
 
                 article = Article(
                     id=f"rss_{entry.get('id', link)}",
                     title=title,
-                    content=summary or title,
+                    content=content_body,
                     url=link,
                     site_name=publisher,
                     author=entry.get("author", None),
                     published_at=published_at,
                     category=category,
-                    summary=summary[:300] if summary else None,
+                    summary=content_body,
                     extra_meta={
                         "feed_id": feed_cfg.get("id"),
                         "feed_name": feed_name,
