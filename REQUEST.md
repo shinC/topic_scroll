@@ -221,3 +221,18 @@
   - 📄 [구현 계획서](docs/history/20261003_add_teamblind_topic_best_portal/IMPLEMENTATION_PLAN.md)
   - 📄 [결과 보고서 (Walkthrough)](docs/history/20261003_add_teamblind_topic_best_portal/WALKTHROUGH.md)
 
+---
+
+### 21. Git 병합 충돌 및 GitHub 동기화 에러 수정
+- **요청 일시**: 2026-10-06
+- **요청 내용**: GitHub 원격 리포지토리(`origin/main`)와 로컬 `main` 브랜치 간 다이버전스 및 병합 충돌(`rss_scraper.py`, `.DS_Store`) 에러 해결.
+- **처리 내역**:
+  - `git pull --rebase` 실행 중 발생한 `.DS_Store` 파일 삭제 충돌 및 `rss_scraper.py` WAF 우회 로직 병합 충돌 해결.
+  - `rss_scraper.py`: `curl_cffi` Chrome 임퍼소네이션과 Google FeedFetcher UA + `httpx` 비검증 2단계 폴백 구조로 선형 통합.
+  - 리베이스 완료 후 `python3 src/main.py` 실행하여 포털/RSS 전체 수집 및 구글 스프레드시트 덮어쓰기 연동 동작 검증 완료.
+- **상태**: `완료 (Done)`
+- **상세 이력 문서**:
+  - 📄 [구현 계획서](docs/history/20261006_github_error_fix/IMPLEMENTATION_PLAN.md)
+  - 📄 [결과 보고서 (Walkthrough)](docs/history/20261006_github_error_fix/WALKTHROUGH.md)
+
+
