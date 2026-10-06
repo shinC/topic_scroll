@@ -46,7 +46,6 @@ class RSSScraper(BaseScraper):
 
         articles: List[Article] = []
         try:
-            # Cloudflare WAF를 사용하는 사이트(hankyung.com 등)는 전용 피드 리더 User-Agent 사용
             feed_headers = None
             if "hankyung.com" in (url or ""):
                 feed_headers = {
@@ -54,6 +53,7 @@ class RSSScraper(BaseScraper):
                     "Accept": "application/rss+xml, application/xml, text/xml, */*",
                 }
 
+            content = None
             try:
                 response = await client.get(
                     url,
@@ -61,22 +61,40 @@ class RSSScraper(BaseScraper):
                     timeout=settings.REQUEST_TIMEOUT,
                 )
                 response.raise_for_status()
-            except (httpx.HTTPStatusError, httpx.RequestError):
-                # 403 차단 또는 SSL/연결 예외 발생 시 피드 리더 UA 및 SSL 유연 폴백 클라이언트로 재시도
-                fallback_headers = {
-                    "User-Agent": "Mozilla/5.0 (compatible; FeedFetcher-Google; +http://www.google.com/feedfetcher.html)",
-                    "Accept": "application/rss+xml, application/xml, text/xml, */*",
-                }
-                async with httpx.AsyncClient(
-                    headers=fallback_headers,
-                    follow_redirects=True,
-                    verify=False,
-                    timeout=settings.REQUEST_TIMEOUT,
-                ) as fallback_client:
-                    response = await fallback_client.get(url)
-                    response.raise_for_status()
+                content = response.text
+            except (httpx.HTTPStatusError, httpx.RequestError) as http_err:
+                # 403 차단 또는 SSL/연결 예외 발생 시 curl_cffi 임퍼소네이션 또는 피드 리더 UA 유연 폴백으로 재시도
+                try:
+                    from curl_cffi import requests as curl_requests
+                    def _fetch_curl_cffi(target_url: str):
+                        return curl_requests.get(
+                            target_url,
+                            impersonate="chrome",
+                            timeout=int(settings.REQUEST_TIMEOUT),
+                        )
+                    resp = await asyncio.to_thread(_fetch_curl_cffi, url)
+                    if resp.status_code == 200:
+                        content = resp.text
+                except Exception as cf_err:
+                    logger.debug(f"curl_cffi 재시도 실패 [{feed_name}]: {cf_err}")
 
-            content = response.text
+                if not content:
+                    fallback_headers = {
+                        "User-Agent": "Mozilla/5.0 (compatible; FeedFetcher-Google; +http://www.google.com/feedfetcher.html)",
+                        "Accept": "application/rss+xml, application/xml, text/xml, */*",
+                    }
+                    async with httpx.AsyncClient(
+                        headers=fallback_headers,
+                        follow_redirects=True,
+                        verify=False,
+                        timeout=settings.REQUEST_TIMEOUT,
+                    ) as fallback_client:
+                        response = await fallback_client.get(url)
+                        response.raise_for_status()
+                        content = response.text
+
+            if not content:
+                return []
 
             # feedparser 로 XML / RSS / Atom 분석
             feed = feedparser.parse(content)

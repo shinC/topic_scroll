@@ -1,3 +1,4 @@
+import asyncio
 import httpx
 from typing import Optional, Dict
 from config import settings
@@ -48,6 +49,21 @@ async def fetch_html(
         response.raise_for_status()
         return response.text
     except httpx.HTTPStatusError as e:
+        if e.response.status_code == 403:
+            logger.debug(f"HTTP 403 발생으로 curl_cffi 브라우저 임퍼소네이션 재시도: {url}")
+            try:
+                from curl_cffi import requests as curl_requests
+                resp = await asyncio.to_thread(
+                    curl_requests.get,
+                    url,
+                    headers=get_default_headers(headers),
+                    impersonate="chrome",
+                    timeout=int(settings.REQUEST_TIMEOUT),
+                )
+                if resp.status_code == 200:
+                    return resp.text
+            except Exception as cf_err:
+                logger.warning(f"curl_cffi 재시도 실패: {url} - {str(cf_err)}")
         logger.error(f"HTTP 오류 발생 [{e.response.status_code}] URL: {url}")
         raise
     except httpx.RequestError as e:

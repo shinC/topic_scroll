@@ -6,18 +6,22 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app/src \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    TZ=Asia/Seoul
 
 # 작업 디렉터리 설정
 WORKDIR /app
 
-# 시스템 빌드 의존성 설치 (필요시)
+# 시스템 빌드 의존성 및 타임존 설치
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     wget \
     git \
     procps \
+    tzdata \
     ca-certificates \
+    && ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime \
+    && echo "Asia/Seoul" > /etc/timezone \
     && rm -rf /var/lib/apt/lists/*
 
 # 보안을 위한 non-root 사용자 생성

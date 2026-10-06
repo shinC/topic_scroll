@@ -9,6 +9,7 @@ services:
       - .env.example
     environment:
       - PYTHONPATH=/app/src
+      - TZ=Asia/Seoul
     volumes:
       - .:/app
     command: ["run-all"]
